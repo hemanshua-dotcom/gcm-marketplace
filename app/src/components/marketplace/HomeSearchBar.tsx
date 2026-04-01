@@ -25,6 +25,55 @@ const EXAMPLE_CHIPS = [
   { label: "Analytics", href: "/browse?category=analytics" },
 ];
 
+// Client-side NL → browse URL fallback (no API needed)
+function localNlToBrowseUrl(q: string): string {
+  const lower = q.toLowerCase();
+  const params = new URLSearchParams();
+
+  // Category detection
+  if (/\b(ai|ml|machine.?learning|llm|language model|text generation|generative|embedding|vector)\b/.test(lower))
+    params.set("category", "ai-ml");
+  else if (/\b(security|compliance|vulnerability|scanning|threat|firewall|siem|zero.?trust)\b/.test(lower))
+    params.set("category", "security");
+  else if (/\b(devops|ci[\/ ]?cd|pipeline|deploy|monitoring|observability|logging|kubernetes|k8s|container)\b/.test(lower))
+    params.set("category", "devops");
+  else if (/\b(database|sql|nosql|postgres|mysql|redis|mongodb|storage)\b/.test(lower))
+    params.set("category", "databases");
+  else if (/\b(analytics|bi|data.?warehouse|etl|dashboard|reporting|snowflake|databricks)\b/.test(lower))
+    params.set("category", "analytics");
+  else if (/\b(network|cdn|load.?balan|vpn|dns|proxy|cloudflare)\b/.test(lower))
+    params.set("category", "networking");
+
+  // Type detection
+  if (/\b(llm|language model|foundation|generative|text generation|gpt|claude|gemini|embedding)\b/.test(lower))
+    params.set("type", "FOUNDATIONAL_MODEL");
+  else if (/\b(kubernetes|k8s|helm|chart)\b/.test(lower))
+    params.set("type", "KUBERNETES_APP");
+  else if (/\b(api|rest|grpc|endpoint)\b/.test(lower))
+    params.set("type", "API");
+  else if (/\b(vm|virtual machine|compute|image)\b/.test(lower))
+    params.set("type", "VM_IMAGE");
+  else if (/\b(dataset|data set)\b/.test(lower))
+    params.set("type", "DATASET");
+
+  // Pricing detection
+  if (/\b(free|no.?cost|open.?source|zero cost)\b/.test(lower))
+    params.set("pricing", "free");
+  else if (/\b(subscription|monthly|annual|per month)\b/.test(lower))
+    params.set("pricing", "subscription");
+  else if (/\b(usage.?based|pay.?per.?use|pay as you go|per unit|per token)\b/.test(lower))
+    params.set("pricing", "usage-based");
+
+  // Fallback: extract meaningful keywords (strip filler words)
+  if (!params.has("category") && !params.has("type")) {
+    const stopWords = /\b(best|top|good|find|i need|looking for|what|which|for|to|a|an|the|on|in|with|of|and|or|how|can|do|get|use|using|deploy|run|setup|manage|my|our|help|tool|tools|solution|solutions|platform|service|app|application)\b/g;
+    const keywords = lower.replace(stopWords, " ").replace(/\s+/g, " ").trim().split(" ").filter(w => w.length > 3).slice(0, 3).join(" ");
+    if (keywords) params.set("search", keywords);
+  }
+
+  return `/browse?${params.toString()}`;
+}
+
 function isNaturalLanguage(q: string) {
   if (q.trim().length < 18) return false;
   const nlWords = ["best", " for ", "how", "what", "which", "find", "i need", "looking for", "help", "tools to", "way to", "solutions for"];
@@ -133,13 +182,14 @@ export function HomeSearchBar() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setShowDropdown(false);
-    // If AI returned a browseUrl, use it; otherwise fall back to keyword search
+    if (!query.trim()) { router.push("/browse"); return; }
     if (aiResult?.browseUrl) {
       router.push(aiResult.browseUrl);
-    } else if (query.trim()) {
-      router.push(`/browse?search=${encodeURIComponent(query.trim())}`);
+    } else if (isNaturalLanguage(query)) {
+      // AI unavailable — use local keyword-to-filter mapper
+      router.push(localNlToBrowseUrl(query));
     } else {
-      router.push("/browse");
+      router.push(`/browse?search=${encodeURIComponent(query.trim())}`);
     }
   }
 
