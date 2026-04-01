@@ -5,23 +5,24 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Sparkles, ArrowRight, Loader2, X } from "lucide-react";
 
 const PLACEHOLDER_QUERIES = [
-  "best AI model for text generation",
-  "free Kubernetes monitoring tools",
-  "security scanning for containers",
-  "database with free tier on GCP",
-  "CI/CD pipeline for microservices",
-  "deploy Redis on Google Cloud",
-  "vector database for RAG apps",
+  "AI models for text generation",
+  "Kubernetes monitoring",
+  "container security scanning",
+  "managed databases on GCP",
+  "CI/CD pipeline tools",
+  "Redis on Google Cloud",
+  "observability and logging",
 ];
 
+// Each chip has a direct browse URL — guaranteed to show results
 const EXAMPLE_CHIPS = [
-  { label: "Generative AI", query: "generative AI models" },
-  { label: "Free databases", query: "free database" },
-  { label: "Kubernetes apps", query: "Kubernetes deployment" },
-  { label: "Security & compliance", query: "security compliance scanning" },
-  { label: "Data pipelines", query: "data pipeline ETL" },
-  { label: "Developer tools", query: "developer productivity tools" },
-  { label: "Vector databases", query: "vector database for AI" },
+  { label: "AI & ML models", href: "/browse?category=ai-ml" },
+  { label: "Free tools", href: "/browse?pricing=free" },
+  { label: "Kubernetes apps", href: "/browse?type=KUBERNETES_APP" },
+  { label: "Security", href: "/browse?category=security" },
+  { label: "Databases", href: "/browse?category=databases" },
+  { label: "DevOps & CI/CD", href: "/browse?category=devops" },
+  { label: "Analytics", href: "/browse?category=analytics" },
 ];
 
 function isNaturalLanguage(q: string) {
@@ -132,7 +133,8 @@ export function HomeSearchBar() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setShowDropdown(false);
-    if (aiResult?.browseUrl && isNaturalLanguage(query)) {
+    // If AI returned a browseUrl, use it; otherwise fall back to keyword search
+    if (aiResult?.browseUrl) {
       router.push(aiResult.browseUrl);
     } else if (query.trim()) {
       router.push(`/browse?search=${encodeURIComponent(query.trim())}`);
@@ -141,9 +143,9 @@ export function HomeSearchBar() {
     }
   }
 
-  function handleChipClick(chipQuery: string) {
+  function handleChipClick(href: string) {
     setShowDropdown(false);
-    router.push(`/browse?search=${encodeURIComponent(chipQuery)}`);
+    router.push(href);
   }
 
   const showAiBadge = isNaturalLanguage(query);
@@ -254,7 +256,7 @@ export function HomeSearchBar() {
           <button
             key={chip.label}
             type="button"
-            onClick={() => handleChipClick(chip.query)}
+            onClick={() => handleChipClick(chip.href)}
             className="px-3.5 py-1.5 rounded-full bg-white border border-[#DADCE0] text-xs font-medium text-[#3C4043] hover:border-[#1B73E8] hover:text-[#1B73E8] hover:bg-[#F0F6FF] hover:shadow-sm transition-all duration-150 shadow-sm"
           >
             {chip.label}
