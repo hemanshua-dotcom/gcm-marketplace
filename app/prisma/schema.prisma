@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  image       String?
+  role        String   @default("BUYER")
+  publisherId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reviews   Review[]
+  orders    Order[]
+}
+
+model Publisher {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  logoUrl     String
+  website     String?
+  verified    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  products    Product[]
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  shortDescription String
+  description      String
+  type             String
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  publisherId      String
+  publisher        Publisher @relation(fields: [publisherId], references: [id])
+  logoUrl          String
+  screenshots      String
+  featured         Boolean  @default(false)
+  verified         Boolean  @default(false)
+  rating           Float    @default(0)
+  reviewCount      Int      @default(0)
+  deployCount      Int      @default(0)
+  tags             String
+  metadata         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  pricingPlans     PricingPlan[]
+  reviews          Review[]
+  orders           Order[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  icon        String
+  color       String
+  createdAt   DateTime  @default(now())
+
+  products    Product[]
+}
+
+model PricingPlan {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  name          String
+  type          String
+  price         Float?
+  unitPrice     Float?
+  unit          String?
+  billingPeriod String?
+  description   String
+  features      String
+  highlighted   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  title     String
+  body      String
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  planId       String
+  planName     String?
+  status       String   @default("ACTIVE")
+  projectId    String?
+  region       String?
+  monthlyCost  Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
