@@ -7,10 +7,11 @@ export async function GET(req: NextRequest) {
 
   const products = await db.product.findMany({
     where: {
+      verified: true,
       OR: [
-        { name: { contains: q } },
-        { shortDescription: { contains: q } },
-        { tags: { contains: q } },
+        { name: { contains: q, mode: "insensitive" } },
+        { shortDescription: { contains: q, mode: "insensitive" } },
+        { tags: { contains: q, mode: "insensitive" } },
       ],
     },
     include: { publisher: true, category: true },

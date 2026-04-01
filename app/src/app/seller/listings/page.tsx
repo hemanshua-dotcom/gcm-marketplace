@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { PRODUCT_TYPE_LABELS } from "@/lib/utils";
 import {
-  Plus, Eye, Edit2, Trash2, CheckCircle2, Clock,
-  AlertCircle, Search, Filter, ArrowLeft, MoreVertical,
+  Plus, CheckCircle2, Clock,
+  Search, Filter, ArrowLeft,
   TrendingUp, Star, Package
 } from "lucide-react";
+import { SellerListingActions } from "@/components/seller/SellerListingActions";
 
 export default async function SellerListingsPage() {
   const user = await getSession();
@@ -177,18 +178,12 @@ export default async function SellerListingsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="w-20 flex items-center justify-end gap-1">
-                  <Link href={`/products/${listing.slug}`}>
-                    <button className="p-1.5 rounded-lg hover:bg-[#E8EAED] text-[#5F6368] transition-colors">
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                  </Link>
-                  <button className="p-1.5 rounded-lg hover:bg-[#E8EAED] text-[#5F6368] transition-colors">
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button className="p-1.5 rounded-lg hover:bg-[#FEE2E2] text-[#D93025] transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                <div className="w-20">
+                  <SellerListingActions
+                    productId={listing.id}
+                    productName={listing.name}
+                    productSlug={listing.slug}
+                  />
                 </div>
               </div>
             ))}

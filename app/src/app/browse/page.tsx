@@ -23,9 +23,9 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
 
   if (params.search) {
     where.OR = [
-      { name: { contains: params.search } },
-      { shortDescription: { contains: params.search } },
-      { description: { contains: params.search } },
+      { name: { contains: params.search, mode: "insensitive" } },
+      { shortDescription: { contains: params.search, mode: "insensitive" } },
+      { description: { contains: params.search, mode: "insensitive" } },
     ];
   }
   if (params.category) {
@@ -36,6 +36,18 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   }
   if (params.featured === "true") {
     where.featured = true;
+  }
+  if (params.pricing) {
+    const pricingMap: Record<string, string> = {
+      "free": "FREE",
+      "subscription": "SUBSCRIPTION",
+      "usage-based": "USAGE_BASED",
+      "byol": "BYOL",
+    };
+    const pricingType = pricingMap[params.pricing];
+    if (pricingType) {
+      where.pricingPlans = { some: { type: pricingType } };
+    }
   }
 
   const orderBy: Record<string, string> =
