@@ -128,7 +128,9 @@ export default async function SellerPage() {
                       <Link href={`/products/${listing.slug}`}>
                         <button className="p-2 rounded-lg hover:bg-[#F1F3F4] text-[#5F6368]"><Eye className="w-4 h-4" /></button>
                       </Link>
-                      <button className="p-2 rounded-lg hover:bg-[#F1F3F4] text-[#5F6368]"><Edit2 className="w-4 h-4" /></button>
+                      <Link href={`/seller/listings/${listing.id}/edit`}>
+                        <button className="p-2 rounded-lg hover:bg-[#F1F3F4] text-[#5F6368]"><Edit2 className="w-4 h-4" /></button>
+                      </Link>
                     </div>
                   </div>
                 </div>
