@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (!publisherId) return NextResponse.json({ error: "No publisher linked to this account" }, { status: 400 });
 
   const body = await req.json();
-  const { name, shortDescription, description, category, type, tags, pricingType, price, unitPrice, unit, billingPeriod, planName, planDescription, planFeatures } = body;
+  const { name, shortDescription, description, category, type, tags, logoUrl, pricingType, price, unitPrice, unit, billingPeriod, planName, planDescription, planFeatures } = body;
 
   if (!name || !shortDescription || !category || !type || !pricingType) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       type,
       categoryId: categoryRecord.id,
       publisherId,
-      logoUrl: "",
+      logoUrl: logoUrl || "",
       screenshots: JSON.stringify([]),
       featured: false,
       verified: false,          // pending review

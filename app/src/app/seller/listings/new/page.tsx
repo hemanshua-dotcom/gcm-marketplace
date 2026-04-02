@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -63,6 +63,21 @@ export default function NewListingPage() {
     planFeatures: [""],
   });
   const [tagInput, setTagInput] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
+  const [logoDragOver, setLogoDragOver] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  function handleLogoFile(file: File) {
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 2 * 1024 * 1024) return; // 2MB limit
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setLogoPreview(dataUrl);
+      update("logoUrl", dataUrl);
+    };
+    reader.readAsDataURL(file);
+  }
 
   function update(key: string, value: unknown) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -317,10 +332,37 @@ export default function NewListingPage() {
                   rows={6} className={`${inputCls} resize-none`} />
               </Field>
               <Field label="Logo" hint="Square image, min 100x100px, PNG or SVG recommended">
-                <div className="border-2 border-dashed border-[#DADCE0] rounded-2xl p-8 text-center hover:border-[#1B73E8] transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 text-[#BDC1C6] mx-auto mb-2" />
-                  <p className="text-sm text-[#5F6368]">Drop file here or <span className="text-[#1B73E8]">browse</span></p>
-                  <p className="text-xs text-[#9AA0A6] mt-1">PNG, SVG, JPG up to 2MB</p>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoFile(f); }}
+                />
+                <div
+                  onClick={() => logoInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setLogoDragOver(true); }}
+                  onDragLeave={() => setLogoDragOver(false)}
+                  onDrop={(e) => { e.preventDefault(); setLogoDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleLogoFile(f); }}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                    logoDragOver ? "border-[#1B73E8] bg-[#F0F6FF]" : logoPreview ? "border-[#137333] bg-[#F6FEF8]" : "border-[#DADCE0] hover:border-[#1B73E8] hover:bg-[#F8F9FA]"
+                  }`}
+                >
+                  {logoPreview ? (
+                    <div className="flex items-center justify-center gap-4">
+                      <img src={logoPreview} alt="Logo preview" className="w-16 h-16 rounded-xl object-contain border border-[#DADCE0] bg-white p-1" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-[#137333]">Logo uploaded</p>
+                        <p className="text-xs text-[#5F6368] mt-0.5">Click to replace</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-[#BDC1C6] mx-auto mb-2" />
+                      <p className="text-sm text-[#5F6368]">Drop file here or <span className="text-[#1B73E8] font-medium">browse</span></p>
+                      <p className="text-xs text-[#9AA0A6] mt-1">PNG, SVG, JPG, WebP up to 2MB</p>
+                    </>
+                  )}
                 </div>
               </Field>
               <Field label="Support email">
@@ -394,6 +436,7 @@ export default function NewListingPage() {
                         category: form.category,
                         type: form.type,
                         tags: form.tags,
+                        logoUrl: form.logoUrl,
                         pricingType: form.pricingType,
                         price: form.price,
                         unitPrice: form.unitPrice,
